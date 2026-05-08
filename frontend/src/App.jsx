@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import OrdersPage from './pages/OrdersPage';
+import InsightsPage from './pages/InsightsPage';
 import Spinner from './components/common/Spinner';
 
 /**
@@ -61,18 +62,17 @@ function App() {
           toastOptions={{
             duration: 3000,
             style: {
-              background: '#1e293b',
-              color: '#f1f5f9',
-              fontSize: '14px',
-              borderRadius: '10px',
+              background: 'rgba(13, 17, 31, 0.95)',
+              color: '#e2e8f0',
+              fontSize: '13px',
+              borderRadius: '12px',
               padding: '12px 16px',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+              backdropFilter: 'blur(16px)',
+              boxShadow: '0 0 30px rgba(99,102,241,0.1), 0 10px 30px rgba(0,0,0,0.5)',
             },
-            success: {
-              iconTheme: { primary: '#22c55e', secondary: '#fff' },
-            },
-            error: {
-              iconTheme: { primary: '#ef4444', secondary: '#fff' },
-            },
+            success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
+            error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
           }}
         />
 
@@ -95,7 +95,6 @@ function App() {
             }
           />
 
-          {/* Protected routes */}
           <Route
             element={
               <ProtectedRoute>
@@ -105,6 +104,7 @@ function App() {
           >
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/insights" element={<InsightsPage />} />
           </Route>
 
           {/* Catch-all redirect */}

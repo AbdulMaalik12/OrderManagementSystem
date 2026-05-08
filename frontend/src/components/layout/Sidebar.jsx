@@ -1,10 +1,12 @@
 import { NavLink } from 'react-router-dom';
+import { HiOutlineSparkles } from 'react-icons/hi';
 import { HiOutlineViewGrid, HiOutlineClipboardList, HiOutlineX } from 'react-icons/hi';
 import { HiMiniBoltSlash } from 'react-icons/hi2';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: HiOutlineViewGrid },
   { to: '/orders', label: 'Orders', icon: HiOutlineClipboardList },
+  { to: '/insights', label: 'AI Insights', icon: HiOutlineSparkles, badge: 'AI' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -63,6 +65,12 @@ export default function Sidebar({ isOpen, onClose }) {
                     <Icon className={`w-4 h-4 ${isActive ? 'text-primary-400' : 'text-dark-300 group-hover:text-white'}`} />
                   </div>
                   <span>{label}</span>
+                  {badge && !isActive && (
+                    <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-md tracking-wide"
+                      style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.25)' }}>
+                      {badge}
+                    </span>
+                  )}
                   {isActive && (
                     <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-400 pulse-dot" />
                   )}

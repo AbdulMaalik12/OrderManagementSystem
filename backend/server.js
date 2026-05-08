@@ -15,6 +15,7 @@ const logger = require('./utils/logger');
 const authRoutes = require('./routes/auth.routes');
 const orderRoutes = require('./routes/order.routes');
 const healthRoutes = require('./routes/health.routes');
+const aiRoutes = require('./routes/ai.routes');
 
 const app = express();
 
@@ -76,6 +77,7 @@ if (NODE_ENV === 'development') {
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res) => {
