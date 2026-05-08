@@ -52,7 +52,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
         {/* Nav items */}
         <nav className="px-3 space-y-1 flex-1">
-          {navItems.map(({ to, label, icon: Icon }) => (
+          {navItems.map(({ to, label, icon: Icon, badge }) => (
             <NavLink key={to} to={to} onClick={onClose}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${

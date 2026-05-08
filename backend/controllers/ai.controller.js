@@ -1,9 +1,32 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Order = require('../models/Order');
-const { successResponse, errorResponse } = require('../utils/apiResponse');
+const { success: successResponse, error: errorResponse } = require('../utils/apiResponse');
 const logger = require('../utils/logger');
+const { GEMINI_API_KEY, GEMINI_MODEL } = require('../config/env');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+/**
+ * Gemma 4 (and other thinking models) include chain-of-thought in the response.
+ * This extracts ONLY the final answer text, stripping all thought parts.
+ */
+function extractCleanText(response) {
+  try {
+    // Method 1: SDK parts API — thought parts have { thought: true }
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    const textParts = parts.filter((p) => !p.thought && p.text);
+    if (textParts.length > 0) return textParts.map((p) => p.text).join('').trim();
+  } catch (_) {}
+
+  // Method 2: Fallback — strip lines starting with '* ' (Gemma thinking format)
+  const full = response.text();
+  const cleaned = full
+    .split('\n')
+    .filter((line) => !line.trim().startsWith('* '))
+    .join('\n')
+    .trim();
+  return cleaned || full.trim();
+}
 
 /**
  * Build a rich context string from the user's orders.
@@ -80,13 +103,13 @@ exports.generateSummary = async (req, res, next) => {
     const { context, stats } = await buildOrderContext(req.user.id);
 
     if (!context) {
-      return successResponse(res, 200, {
+      return successResponse(res, {
         insight: "You don't have any orders yet. Once you start adding orders, I'll be able to generate business insights for you!",
         stats: null,
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
     const prompt = `You are a smart business analyst assistant for a Pakistani WhatsApp/Instagram seller. 
 Analyze the following order data and provide a comprehensive, actionable business summary.
@@ -103,10 +126,10 @@ Write a detailed but friendly summary covering:
 Keep the tone professional but conversational. Use PKR for currency. Format with clear sections.`;
 
     const result = await model.generateContent(prompt);
-    const insight = result.response.text();
+    const insight = extractCleanText(result.response);
 
     logger.info(`AI summary generated for user ${req.user.id}`);
-    return successResponse(res, 200, { insight, stats });
+    return successResponse(res, { insight, stats });
   } catch (err) {
     logger.error(`AI summary error: ${err.message}`);
     next(err);
@@ -122,41 +145,43 @@ exports.askQuestion = async (req, res, next) => {
     const { question } = req.body;
 
     if (!question || question.trim().length < 3) {
-      return errorResponse(res, 400, 'Please provide a valid question');
+      return errorResponse(res, 'Please provide a valid question', 400);
     }
 
     if (question.trim().length > 500) {
-      return errorResponse(res, 400, 'Question too long (max 500 characters)');
+      return errorResponse(res, 'Question too long (max 500 characters)', 400);
     }
 
     const { context } = await buildOrderContext(req.user.id);
 
     if (!context) {
-      return successResponse(res, 200, {
+      return successResponse(res, {
         answer: "You don't have any orders yet, so I can't answer questions about your data. Start adding orders and come back!",
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
-    const prompt = `You are a smart business analyst assistant for a Pakistani WhatsApp/Instagram seller.
-Answer the following question based ONLY on the order data provided. Be concise and specific.
+    const prompt = `You are a business analyst for a Pakistani WhatsApp/Instagram seller.
 
+STRICT RULES:
+- Output ONLY the direct answer. Nothing else.
+- Do NOT restate the question, show reasoning steps, summarize the data, or add any preamble.
+- Use PKR for currency. Be under 80 words. One short paragraph max.
+- If the data doesn't contain the answer, say so in one sentence only.
+
+ORDER DATA:
 ${context}
 
-User Question: ${question}
+QUESTION: ${question}
 
-Instructions:
-- Use PKR for currency values
-- Be direct and specific with numbers from the data
-- If the question can't be answered from the data, say so politely
-- Keep your answer focused and under 200 words`;
+ANSWER:`;
 
     const result = await model.generateContent(prompt);
-    const answer = result.response.text();
+    const answer = extractCleanText(result.response);
 
     logger.info(`AI Q&A answered for user ${req.user.id}: "${question.substring(0, 50)}"`);
-    return successResponse(res, 200, { answer, question });
+    return successResponse(res, { answer, question });
   } catch (err) {
     logger.error(`AI Q&A error: ${err.message}`);
     next(err);
