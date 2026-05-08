@@ -2,29 +2,23 @@ import StatusBadge from './StatusBadge';
 import StatusDropdown from './StatusDropdown';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
-import EmptyState from '../common/EmptyState';
 import { HiOutlineClipboardList } from 'react-icons/hi';
 
-/**
- * Responsive orders table.
- * On mobile: card layout. On desktop: traditional table.
- */
-export default function OrderTable({
-  orders,
-  onEdit,
-  onDelete,
-  onStatusChange,
-  updatingId,
-}) {
-  if (!orders || orders.length === 0) {
-    return (
-      <EmptyState
-        icon={HiOutlineClipboardList}
-        title="No orders yet"
-        description="Create your first order to get started."
-      />
-    );
-  }
+function EmptyOrderState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 float"
+        style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', boxShadow: '0 0 30px rgba(99,102,241,0.1)' }}>
+        <HiOutlineClipboardList className="w-8 h-8 text-primary-400" />
+      </div>
+      <h3 className="text-base font-bold text-dark-100 mb-2" style={{ fontFamily: "'Exo 2', sans-serif" }}>No Orders Yet</h3>
+      <p className="text-sm text-dark-400 max-w-xs">Create your first order to start tracking your business.</p>
+    </div>
+  );
+}
+
+export default function OrderTable({ orders, onEdit, onDelete, onStatusChange, updatingId }) {
+  if (!orders || orders.length === 0) return <EmptyOrderState />;
 
   return (
     <>
@@ -32,65 +26,50 @@ export default function OrderTable({
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-surface-200">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Order #</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Customer</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Product</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Qty</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Price</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Date</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Actions</th>
+            <tr style={{ borderBottom: '1px solid rgba(99,102,241,0.1)' }}>
+              {['Order #', 'Customer', 'Product', 'Qty', 'Amount', 'Status', 'Date', ''].map((h) => (
+                <th key={h} className="text-left px-4 py-3.5 text-[10px] font-bold text-dark-400 uppercase tracking-[2px]">{h}</th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-surface-100">
+          <tbody>
             {orders.map((order) => (
-              <tr key={order._id} className="hover:bg-surface-50 transition-colors">
-                <td className="px-4 py-3">
-                  <span className="text-sm font-mono text-primary-600 font-medium">
+              <tr key={order._id} className="table-row-hover" style={{ borderBottom: '1px solid rgba(99,102,241,0.05)' }}>
+                <td className="px-4 py-4">
+                  <span className="text-xs font-bold text-primary-400 font-mono tracking-wide"
+                    style={{ textShadow: '0 0 10px rgba(99,102,241,0.5)' }}>
                     {order.orderNumber}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-surface-800">{order.customerName}</p>
-                    <p className="text-xs text-surface-400">{order.phone}</p>
-                  </div>
+                <td className="px-4 py-4">
+                  <p className="text-sm font-semibold text-white">{order.customerName}</p>
+                  <p className="text-xs text-dark-400 mt-0.5">{order.phone}</p>
                 </td>
-                <td className="px-4 py-3">
-                  <p className="text-sm text-surface-700">{order.product}</p>
-                  {order.size && (
-                    <p className="text-xs text-surface-400">Size: {order.size}</p>
-                  )}
+                <td className="px-4 py-4">
+                  <p className="text-sm text-dark-100">{order.product}</p>
+                  {order.size && <p className="text-xs text-dark-400 mt-0.5">Size: {order.size}</p>}
                 </td>
-                <td className="px-4 py-3 text-sm text-surface-700">{order.quantity}</td>
-                <td className="px-4 py-3 text-sm font-medium text-surface-800">
-                  {formatCurrency(order.price * order.quantity)}
+                <td className="px-4 py-4 text-sm text-dark-200">{order.quantity}</td>
+                <td className="px-4 py-4">
+                  <span className="text-sm font-bold text-white">{formatCurrency(order.price * order.quantity)}</span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-4">
                   <StatusDropdown
                     currentStatus={order.status}
                     onStatusChange={(status) => onStatusChange(order._id, status)}
                     disabled={updatingId === order._id}
                   />
                 </td>
-                <td className="px-4 py-3 text-sm text-surface-500">
-                  {formatDate(order.createdAt)}
-                </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-4 text-xs text-dark-400">{formatDate(order.createdAt)}</td>
+                <td className="px-4 py-4">
                   <div className="flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => onEdit(order)}
-                      className="p-1.5 rounded-lg text-surface-400 hover:text-primary-600 hover:bg-primary-50 transition-colors cursor-pointer"
-                      title="Edit order"
-                    >
+                    <button onClick={() => onEdit(order)}
+                      className="p-2 rounded-lg text-dark-400 hover:text-primary-400 transition-all cursor-pointer"
+                      style={{ ':hover': { background: 'rgba(99,102,241,0.1)' } }}>
                       <HiOutlinePencil className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => onDelete(order)}
-                      className="p-1.5 rounded-lg text-surface-400 hover:text-danger-600 hover:bg-danger-50 transition-colors cursor-pointer"
-                      title="Delete order"
-                    >
+                    <button onClick={() => onDelete(order)}
+                      className="p-2 rounded-lg text-dark-400 hover:text-danger-400 transition-all cursor-pointer">
                       <HiOutlineTrash className="w-4 h-4" />
                     </button>
                   </div>
@@ -101,59 +80,33 @@ export default function OrderTable({
         </table>
       </div>
 
-      {/* Mobile card layout */}
-      <div className="md:hidden space-y-3">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3 p-3">
         {orders.map((order) => (
-          <div
-            key={order._id}
-            className="bg-white rounded-xl border border-surface-200 p-4 space-y-3"
-          >
+          <div key={order._id} className="gradient-border p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-xs font-mono text-primary-600 font-medium">
-                  {order.orderNumber}
-                </span>
-                <p className="text-sm font-medium text-surface-800 mt-0.5">
-                  {order.customerName}
-                </p>
-                <p className="text-xs text-surface-400">{order.phone}</p>
+                <span className="text-xs font-bold text-primary-400 font-mono">{order.orderNumber}</span>
+                <p className="text-sm font-semibold text-white mt-0.5">{order.customerName}</p>
+                <p className="text-xs text-dark-400">{order.phone}</p>
               </div>
               <StatusBadge status={order.status} />
             </div>
-
             <div className="flex items-center justify-between text-sm">
               <div>
-                <p className="text-surface-600">{order.product}</p>
-                {order.size && (
-                  <p className="text-xs text-surface-400">Size: {order.size} · Qty: {order.quantity}</p>
-                )}
-                {!order.size && (
-                  <p className="text-xs text-surface-400">Qty: {order.quantity}</p>
-                )}
+                <p className="text-dark-200">{order.product}</p>
+                <p className="text-xs text-dark-400">Qty: {order.quantity}{order.size ? ` · Size: ${order.size}` : ''}</p>
               </div>
-              <p className="font-semibold text-surface-800">
-                {formatCurrency(order.price * order.quantity)}
-              </p>
+              <p className="font-bold text-white">{formatCurrency(order.price * order.quantity)}</p>
             </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-surface-100">
-              <span className="text-xs text-surface-400">{formatDate(order.createdAt)}</span>
+            <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(99,102,241,0.1)' }}>
+              <span className="text-xs text-dark-400">{formatDate(order.createdAt)}</span>
               <div className="flex items-center gap-2">
-                <StatusDropdown
-                  currentStatus={order.status}
-                  onStatusChange={(status) => onStatusChange(order._id, status)}
-                  disabled={updatingId === order._id}
-                />
-                <button
-                  onClick={() => onEdit(order)}
-                  className="p-1.5 rounded-lg text-surface-400 hover:text-primary-600 hover:bg-primary-50 transition-colors cursor-pointer"
-                >
+                <StatusDropdown currentStatus={order.status} onStatusChange={(s) => onStatusChange(order._id, s)} disabled={updatingId === order._id} />
+                <button onClick={() => onEdit(order)} className="p-1.5 rounded-lg text-dark-400 hover:text-primary-400 transition-colors cursor-pointer">
                   <HiOutlinePencil className="w-4 h-4" />
                 </button>
-                <button
-                  onClick={() => onDelete(order)}
-                  className="p-1.5 rounded-lg text-surface-400 hover:text-danger-600 hover:bg-danger-50 transition-colors cursor-pointer"
-                >
+                <button onClick={() => onDelete(order)} className="p-1.5 rounded-lg text-dark-400 hover:text-danger-400 transition-colors cursor-pointer">
                   <HiOutlineTrash className="w-4 h-4" />
                 </button>
               </div>

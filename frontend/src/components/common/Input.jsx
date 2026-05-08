@@ -1,30 +1,14 @@
 import { forwardRef } from 'react';
 
-/**
- * Reusable Input component with label and error display.
- */
 const Input = forwardRef(function Input(
-  {
-    label,
-    name,
-    type = 'text',
-    placeholder,
-    error,
-    required = false,
-    className = '',
-    ...props
-  },
+  { label, name, type = 'text', placeholder, error, required = false, className = '', ...props },
   ref
 ) {
   return (
-    <div className={`space-y-1 ${className}`}>
+    <div className={`space-y-1.5 ${className}`}>
       {label && (
-        <label
-          htmlFor={name}
-          className="block text-sm font-medium text-surface-700"
-        >
-          {label}
-          {required && <span className="text-danger-500 ml-0.5">*</span>}
+        <label htmlFor={name} className="block text-xs font-semibold text-dark-200 uppercase tracking-widest">
+          {label}{required && <span className="text-primary-400 ml-0.5">*</span>}
         </label>
       )}
       <input
@@ -33,15 +17,13 @@ const Input = forwardRef(function Input(
         name={name}
         type={type}
         placeholder={placeholder}
-        className={`w-full px-3 py-2 rounded-lg border transition-colors duration-200 text-sm
-          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-          ${error ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500' : 'border-surface-300 hover:border-surface-400'}
-          placeholder:text-surface-400`}
+        className={`input-neon w-full px-4 py-3 rounded-xl text-sm ${error ? 'error' : ''}`}
         {...props}
       />
-      {error && (
-        <p className="text-xs text-danger-500 mt-1">{error}</p>
-      )}
+      {error && <p className="text-xs text-danger-400 mt-1 flex items-center gap-1">
+        <span className="w-1 h-1 rounded-full bg-danger-400 inline-block" />
+        {error}
+      </p>}
     </div>
   );
 });
