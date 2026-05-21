@@ -8,25 +8,47 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 /**
  * Gemma 4 (and other thinking models) include chain-of-thought in the response.
- * This extracts ONLY the final answer text, stripping all thought parts.
+ * Strategy: find the last "* " thinking line → everything AFTER it is the real answer.
  */
 function extractCleanText(response) {
   try {
     // Method 1: SDK parts API — thought parts have { thought: true }
     const parts = response.candidates?.[0]?.content?.parts || [];
     const textParts = parts.filter((p) => !p.thought && p.text);
-    if (textParts.length > 0) return textParts.map((p) => p.text).join('').trim();
+    if (textParts.length > 0) {
+      const text = textParts.map((p) => p.text).join('').trim();
+      // Verify it's not still full of thinking lines
+      const nonThinking = text.split('\n').filter((l) => !l.trim().startsWith('* ') && !l.trim().startsWith('•')).join('\n').trim();
+      if (nonThinking) return nonThinking;
+    }
   } catch (_) {}
 
-  // Method 2: Fallback — strip lines starting with '* ' (Gemma thinking format)
   const full = response.text();
-  const cleaned = full
-    .split('\n')
-    .filter((line) => !line.trim().startsWith('* '))
+  const lines = full.split('\n');
+
+  // Method 2: Find the index of the last "* " thinking line.
+  // The real answer is everything that follows it.
+  let lastThinkingIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const t = lines[i].trim();
+    if (t.startsWith('* ') || t.startsWith('• ') || t === '*') {
+      lastThinkingIdx = i;
+    }
+  }
+
+  if (lastThinkingIdx >= 0 && lastThinkingIdx < lines.length - 1) {
+    const answer = lines.slice(lastThinkingIdx + 1).join('\n').trim();
+    if (answer) return answer;
+  }
+
+  // Method 3: Fallback — strip all "* " lines entirely
+  const cleaned = lines
+    .filter((l) => !l.trim().startsWith('* ') && !l.trim().startsWith('• '))
     .join('\n')
     .trim();
   return cleaned || full.trim();
 }
+
 
 /**
  * Build a rich context string from the user's orders.

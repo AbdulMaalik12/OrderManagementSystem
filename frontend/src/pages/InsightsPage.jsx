@@ -119,7 +119,7 @@ export default function InsightsPage() {
   const chatEndRef = useRef(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages]);
 
   const timestamp = () => new Date().toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
@@ -159,7 +159,7 @@ export default function InsightsPage() {
   };
 
   return (
-    <div className="space-y-5 max-w-6xl">
+    <div className="space-y-3 max-w-6xl">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
@@ -172,14 +172,15 @@ export default function InsightsPage() {
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
           style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}>
           <div className="w-1.5 h-1.5 rounded-full bg-primary-400 pulse-dot" />
-          <span className="text-xs text-primary-300 font-medium">Gemini 1.5 Flash</span>
+          <span className="text-xs text-primary-300 font-medium">Gemma 4 · 31B</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+      <div className="flex gap-5">
 
         {/* ── Left: Auto Summary ─────────────────────────────────────────────── */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="w-72 flex-none flex flex-col gap-4 overflow-y-auto"
+          style={{ height: 'calc(100vh - 225px)' }}>
           {/* Summary card */}
           <div className="gradient-border p-5">
             <div className="flex items-center justify-between mb-4">
@@ -249,7 +250,8 @@ export default function InsightsPage() {
         </div>
 
         {/* ── Right: Chat Interface ───────────────────────────────────────────── */}
-        <div className="lg:col-span-3 flex flex-col gradient-border overflow-hidden" style={{ minHeight: '600px' }}>
+        <div className="flex-1 flex flex-col gradient-border overflow-hidden"
+          style={{ height: 'calc(100vh - 225px)' }}>
           {/* Chat header */}
           <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgba(99,102,241,0.1)' }}>
             <div className="relative">
@@ -267,7 +269,7 @@ export default function InsightsPage() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-5" style={{ minHeight: '400px' }}>
+          <div className="flex-1 overflow-y-auto p-5 space-y-5 min-h-0">
             {messages.map((msg, i) => <ChatMessage key={i} message={msg} />)}
 
             {chatLoading && (
